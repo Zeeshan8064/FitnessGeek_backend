@@ -30,6 +30,39 @@ function createResponse(ok, message, data) {
   };
 }
 
+
+
+router.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+    console.log(user);
+    if (!user) {
+      return res.status(400).json(createResponse(false, "user not found"));
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json(createResponse(false, "Invalid email or password"));
+    }
+
+    const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '50m' });
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '100m' });
+
+    res.cookie('authToken', authToken, { httpOnly: true });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true });
+
+    res.status(200).json(createResponse(true, 'Logged in successfully', {
+      authToken,
+      refreshToken
+    }));
+  } catch (err) {
+    next(err); // Make sure next is included here for error-handling middleware
+  }
+});
+
 router.post("/register", async (req, res) => {
   try {
     const {name,email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel} = req.body;
@@ -66,37 +99,6 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json(createResponse(true, 'User registered successfully'));
   }
-  catch (err) {
-    next(err);
-  }
-});
-
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(400).json(createResponse(false, "Invalid email or password"));
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json(createResponse(false, "Invalid email or password"));
-    }
-    const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '50m' });
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '100m' });
-    
-    res.cookie('authToken', authToken, { httpOnly: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true });
-
-    res.status(200).json(createResponse(true, 'Logged in successfully',{
-        authToken,
-        refreshToken
-    }));
-    }
-
   catch (err) {
     next(err);
   }

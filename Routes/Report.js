@@ -110,38 +110,42 @@ router.get('/getreport', authTokenHandler, async (req, res) => {
     // get goal workout
     let goalWorkout = 0;
     if (user.goal == "weightLoss") {
-   
         goalWorkout = 7;
     }
     else if (user.goal == "weightGain") {
-    
         goalWorkout = 4;
     }
     else {
-    
         goalWorkout = 5;
     }
 
 
     // get goal steps
     let goalSteps = 0;
-    if (user.goal == "weightLoss") {
-        goalSteps = 10000;
-    }
-    else if (user.goal == "weightGain") {
-        goalSteps = 5000;
-    }
-    else {
+
+    // If a goal is provided, update it in the database
+    if (goal) {
+        user.goal = goal.trim();
+        await user.save();
+    }else{
         goalSteps = 7500;
     }
 
+    const currentGoal = user.goal ? user.goal.trim().toLowerCase() : "";
+
+    if (currentGoal === "weightloss") {
+        goalSteps = 10000;
+    } else if (currentGoal === "weightgain") {
+        goalSteps = 5000;
+    }
+
     // get goal sleep
-    let goalSleep = 6;
+    let goalSleep = 8;
 
     // get goal water
     let goalWater = 4000;
 
-    
+
 
     let tempResponse = [
         {

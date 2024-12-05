@@ -91,26 +91,31 @@ router.delete('/deletestepentry', authTokenHandler, async (req, res) => {
     res.json(createResponse(true, 'Steps entry deleted successfully'));
 });
 
-
-
 router.get('/getusergoalsteps', authTokenHandler, async (req, res) => {
+    const { goal } = req.body; // Optional goal in the request
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
+    let goalSteps = 0;
 
-    let totalSteps = 0;
-
-    if(user.goal == "weightLoss"){
-        totalSteps = 10000;
+    // If a goal is provided, update it in the database
+    if (goal) {
+        user.goal = goal.trim();
+        await user.save();
+    }else{
+        goalSteps = 7500;
     }
-    else if(user.goal == "weightGain"){
-        totalSteps = 5000;
-    }
-    else{
-        totalSteps = 7500;
-    }   
 
-    res.json(createResponse(true, 'User steps information', { totalSteps }));
+    const currentGoal = user.goal ? user.goal.trim().toLowerCase() : "";
+
+    if (currentGoal === "weightloss") {
+        goalSteps = 10000;
+    } else if (currentGoal === "weightgain") {
+        goalSteps = 5000;
+    }
+    res.json(createResponse(true, 'User steps information', { goalSteps }));
 });
+
+
 
 router.use(errorHandler);
 

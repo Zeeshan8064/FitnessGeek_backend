@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
+
 const adminSchema = new mongoose.Schema(
   {
     name: {
@@ -21,10 +22,10 @@ const adminSchema = new mongoose.Schema(
   );
 
   // Hash the password before saving it to the database
-userSchema.pre("save", async function (next) {
+adminSchema.pre("save", async function (next) {
     const admin = this;
     if (admin.isModified("password")) {
-      admin.password = await bcrypt.hash(user.password, 10);
+      admin.password = await bcrypt.hash(admin.password, 10);
     }
     next();
   });

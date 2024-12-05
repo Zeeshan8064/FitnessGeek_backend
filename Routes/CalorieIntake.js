@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.router();
+const router = express.Router();
 const authTokenHandler = require("../Middlewares/checkAuthToken");
 const jwt = require("jsonwebtoken");
 const errorHandler = require("../Middlewares/errorMiddleware");
@@ -21,108 +21,145 @@ router.get("/test", authTokenHandler, async (req, res) => {
   );
 });
 
-router.post("/addcalorieintake", authTokenHandler, async (req, res) => {
-  const { item, date, quantity, quantitytype } = req.body;
-  if (!item || !date || !quantity || !quantitytype) {
-    return res
-      .status(400)
-      .json(createResponse(false, "Missing required fields"));
+router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
+  const { item, date, quantity, quantityType } = req.body;
+  if (!item || !date || !quantity || !quantityType) {
+      return res.status(400).json(createResponse(false, 'Please provide all the details'));
   }
+
   let qtyingrams = 0;
-  if (quantitytype === "g") {
-    qtyingrams = quantity;
-  } else if (quantitytype === "kg") {
-    qtyingrams = quantity * 1000;
-  } else if (quantitytype === "ml") {
-    qtyingrams = quantity;
-  } else if (quantitytype === "l") {
-    qtyingrams = quantity * 1000;
+  if (quantityType === 'g') {
+      qtyingrams = Number(quantity);
+  } else if (quantityType === 'kg') {
+      qtyingrams = Number(quantity) * 1000;
+  } else if (quantityType === 'ml') {
+      qtyingrams = Number(quantity);
+  } else if (quantityType === 'l') {
+      qtyingrams = Number(quantity) * 1000;
+  } else {
+      return res.status(400).json(createResponse(false, 'Invalid quantity type'));
   }
 
   var query = item;
-  request.get(
-    {
-      url: "https://api.api-ninjas.com/v1/nutrition?query=" + query,
+  request.get({
+      url: 'https://api.calorieninjas.com/v1/nutrition?query=' + query,
       headers: {
-        "X-Api-Key": process.env.NUTRITION_API_KEY,
+          'X-Api-Key': process.env.NUTRITION_API_KEY,
       },
-    },
-    async function (error, response, body) {
-      if (error) return console.error("Request failed:", error);
-      else if (response.statusCode != 200)
-        return console.error(
-          "Error:",
-          response.statusCode,
-          body.toString("utf8")
-        );
+  }, async function (error, response, body) {
+      if (error) {
+          console.error('Request failed:', error);
+          return res.status(500).json(createResponse(false, 'Internal server error'));
+      }
+      else if (response.statusCode != 200) {
+          console.error('Error:', response.statusCode, body.toString('utf8'));
+          return res.status(500).json(createResponse(false, 'Error from Nutrition API'));
+      }
       else {
-            // body :[ {
-            //     "name": "rice",
-            //     "calories": 127.4,
-            //     "serving_size_g": 100,
-            //     "fat_total_g": 0.3,
-            //     "fat_saturated_g": 0.1,
-            //     "protein_g": 2.7,
-            //     "sodium_mg": 1,
-            //     "potassium_mg": 42,
-            //     "cholesterol_mg": 0,
-            //     "carbohydrates_total_g": 28.4,
-            //     "fiber_g": 0.4,
-            //     "sugar_g": 0.1
-            // }]
+          try {
+              body = JSON.parse(body);
+              console.log('API Response:', body); // Debug log to check the response
 
-            body = JSON.parse(body);
-            let calorieIntake = (body[0].calories / body[0].serving_size_g) * parseInt(qtyingrams);
-            const user = await User.findOne({ _id: userID});
-            user.calorieIntake.push({
-                item,
-                date:new Date(date),
-                quantity,
-                quantitytype,
-                calorieIntake: parseInt(calorieIntake)
-            })
-            await user.save();
-            res.json(createResponse(true, "Calorie intake added successfully"));
-        }
-    }
-  );
+              // Check if items array is valid and contains data
+              if (!Array.isArray(body.items) || body.items.length === 0) {
+                  return res.status(400).json(createResponse(false, 'No data available for the requested item'));
+              }
+
+              const nutritionData = body.items[0]; // Access the first item in the items array
+
+              // Validate the required fields in the response
+              if (typeof nutritionData.calories !== 'number' || typeof nutritionData.serving_size_g !== 'number' || 
+                  isNaN(nutritionData.calories) || isNaN(nutritionData.serving_size_g)) {
+                  return res.status(400).json(createResponse(false, 'Invalid data from nutrition API'));
+              }
+
+              // Calculate calorie intake
+              let calorieIntake = (nutritionData.calories / nutritionData.serving_size_g) * qtyingrams;
+
+              if (isNaN(calorieIntake) || !isFinite(calorieIntake) || calorieIntake <= 0) {
+                  return res.status(400).json(createResponse(false, 'Invalid calorie intake calculated'));
+              }
+
+              const userId = req.userId;
+              const user = await User.findOne({ _id: userId });
+              user.calorieIntake.push({
+                  item,
+                  date: new Date(date),
+                  quantity,
+                  quantityType,
+                  calorieIntake: Math.round(calorieIntake) // Optional: round to an integer
+              });
+
+              await user.save();
+              res.json(createResponse(true, 'Calorie intake added successfully'));
+          } catch (parseError) {
+              console.error('Error parsing API response:', parseError);
+              return res.status(500).json(createResponse(false, 'Internal server error while processing API response'));
+          }
+      }
+  });
 });
 
-router.post("/addcalorieintakebydate",authTokenHandler,async (req, res) => {
-    const {date} = req.body;
-    const userID = req.userId;
-    const user = await User.findOne({ _id: userID});
-    if (!date) {
-        let date = new Date();
-        user.calorieIntake = filterEntriesByDate(user.calorieIntake, date);
 
-        return res.json(createResponse(true, "Calorie intake for today", user.calorieIntake));
+router.post('/getcalorieintakebydate', authTokenHandler, async (req, res) => {
+  const { date } = req.body;
+  const userId = req.userId;
+  const user = await User.findById({ _id: userId });
+  if (!date) {
+      let date = new Date();
+      user.calorieIntake = filterEntriesByDate(user.calorieIntake, date);
 
-    }
+      return res.json(createResponse(true, 'Calorie intake for today', user.calorieIntake));
+  }
+  user.calorieIntake = filterEntriesByDate(user.calorieIntake, new Date(date));
+  res.json(createResponse(true, 'Calorie intake for the date', user.calorieIntake));
+
+})
+
+// Helper function for filtering entries by date
+function filterEntriesByDate(calorieIntakeArray, date) {
+  return calorieIntakeArray.filter(entry => {
+      // Normalize the date stored in the entry
+      const entryDate = new Date(entry.date);
+      entryDate.setHours(0, 0, 0, 0);
+      console.log("Entry Date:", entryDate, "Date:", date);
+
+      return entryDate.getTime() === date.getTime();
+  });
+}
+
+router.post("/getcalorieintakebylimit", authTokenHandler, async (req, res) => {
+  const { limit } = req.body;
+  const userID = req.userId;
+  const user = await User.findOne({ _id: userID });
+
+  if (!limit) {
+      return res.status(400).json(createResponse(false, "Please provide a limit"));
+  } else if (limit === 'all') {
+      return res.json(createResponse(true, "Calorie intake", user.calorieIntake));
+  } else {
+      let date = new Date();
+      let currentDate = new Date(date.setDate(date.getDate() - parseInt(limit))).getTime();
+
+      // Debug log to check the currentDate value
+      console.log("Current Date (Limit applied):", new Date(currentDate));
+
+      // Debug log to print all calorie intake dates
+      console.log("All Calorie Intake Dates:", user.calorieIntake.map(item => item.date));
+
+      // Filter the calorie intake array
+      user.calorieIntake = user.calorieIntake.filter((item) => {
+          console.log("Item Date:", new Date(item.date).getTime(), "Current Date:", currentDate);
+          return new Date(item.date).getTime() >= currentDate;
+      });
+
+      // Debug log to check the filtered results
+      console.log("Filtered Calorie Intake:", user.calorieIntake);
+
+      return res.json(createResponse(true, "Calorie intake for the last " + limit + " days", user.calorieIntake));
+  }
 });
 
-router.post("/getcalorieintakebylimit",authTokenHandler,async (req, res) => {
-    const {limit} = req.body;
-    const userID = req.userId;
-    const user = await User.findOne({ _id: userID});
-
-    if(!limit) {
-
-        return res.status(400).json(createResponse(false, "Please provide a limit"));
-
-    } else if (limit === 'all') {
-
-        return res.json(createResponse(true, "Calorie intake", user.calorieIntake));
-
-    } else {
-
-        let date = new Date();
-        date.setDate(date.getDate() - parseInt(limit));
-        user.calorieIntake = filterEntriesByDate(user.calorieIntake, date);
-
-        return res.json(createResponse(true, "Calorie intake for the last " + limit + " days", user.calorieIntake));
-    }
-});
 
 router.delete("/deletecalorieintake", authTokenHandler, async (req, res) => {
 
