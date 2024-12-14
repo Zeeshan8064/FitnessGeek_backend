@@ -63,6 +63,12 @@ router.post("/login", async (req, res, next) => {
   }
 });
 
+router.post("/logout", (req, res) => {
+  res.clearCookie("authToken", { httpOnly: true });
+  res.clearCookie("refreshToken", { httpOnly: true });
+  res.status(200).json(createResponse(true, "Logged out successfully"));
+});
+
 router.post("/register", async (req, res) => {
   try {
     const {name,email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel} = req.body;
@@ -72,9 +78,11 @@ router.post("/register", async (req, res) => {
       return res.status(409).json(createResponse(false, "Email already exists"));
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
         name,
-        password,
+        password: hashedPassword,
         email,
         weight: [
             {
@@ -104,37 +112,13 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/sendotp", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "FitnessGeek - OTP Verification",
-        text: `Your OTP is ${otp}`
-    }
-
-    transporter.sendMail(mailOptions, async (err, info) => {
-        if (err) {
-            console.log(err);
-            res.status(500).json(createResponse(false, err.message));
-        }else {
-            res.json(createResponse(true, 'OTP sent successfully'));
-        }
-    });}
-  catch (err) {
-    next(err);
-  }
-});
-
 router.post("/checklogin", authTokenHandler ,async (req, res) => {
     res.json({
         ok: true,
         message: "User is authenticated"
     })
 });
+
 
 router.use(errorHandler);
 module.exports = router;

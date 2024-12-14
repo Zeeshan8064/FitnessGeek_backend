@@ -16,54 +16,31 @@ function createResponse(ok, message, data) {
     };
 }
 
-
 router.get('/test', authTokenHandler, async (req, res) => {
-    res.json(createResponse(true, 'Test API works for report'));
+    res.json(createResponse(true, 'Test API works for profile'));
 });
 
-router.get('/getreport', authTokenHandler, async (req, res) => {
-    // get today's calorieIntake
+router.get('/getprofile', authTokenHandler, async (req, res) => {
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
     let today = new Date();
 
-    let calorieIntake = 0;
-    user.calorieIntake.forEach((entry) => {
-        if (entry.date.getDate() === today.getDate() && entry.date.getMonth() === today.getMonth() && entry.date.getFullYear() === today.getFullYear()) {
-            calorieIntake += entry.calorieIntake;
-        }
-        calorieIntake = parseFloat(calorieIntake.toFixed(1));
-    });
+    // get user's name
+    let name = user.name;
 
-    // get today's sleep
-    let sleep = 0;
-    user.sleep.forEach((entry) => {
-        if (entry.date.getDate() === today.getDate() && entry.date.getMonth() === today.getMonth() && entry.date.getFullYear() === today.getFullYear()) {
-            sleep += entry.durationInHrs;
-        }
-    });
-
-    // get today's water
-    let water = 0;
-    user.water.forEach((entry) => {
-        if (entry.date.getDate() === today.getDate() && entry.date.getMonth() === today.getMonth() && entry.date.getFullYear() === today.getFullYear()) {
-            water += entry.amountInMilliliters;
-        }
-    });
-
-    // get today's steps
-    let steps = 0;
-    user.steps.forEach((entry) => {
-        if (entry.date.getDate() === today.getDate() && entry.date.getMonth() === today.getMonth() && entry.date.getFullYear() === today.getFullYear()) {
-            steps += entry.steps;
-        }
-    });
+    //get user's email address
+    let email = user.email;
 
     // get today's weight
     let weight = user.weight[user.weight.length - 1].weight;
     // get today's height
     let height = user.height[user.height.length - 1].height;
 
+    // get user's gender
+    let gender = user.gender;
+
+    // get user's d.o.b
+    let dob = new Date(user.dob);
 
     // get goal calorieIntake
 
@@ -72,7 +49,6 @@ router.get('/getreport', authTokenHandler, async (req, res) => {
     let weightInKg = parseFloat(user.weight[user.weight.length - 1].weight);
     let age = new Date().getFullYear() - new Date(user.dob).getFullYear();
     let BMR = 0;
-    let gender = user.gender;
     if (gender == 'male') {
         BMR = 88.362 + (13.397 * weightInKg) + (4.799 * heightInCm) - (5.677 * age)
 
@@ -94,22 +70,8 @@ router.get('/getreport', authTokenHandler, async (req, res) => {
         maxCalorieIntake = BMR;
     }
 
-
-
     // get goal weight
     let goalWeight = 22 * ((user.height[user.height.length - 1].height / 100) ** 2);
-
-    // get goal workout
-    let goalWorkout = 0;
-    if (user.goal == "weightLoss") {
-        goalWorkout = 7;
-    }
-    else if (user.goal == "weightGain") {
-        goalWorkout = 4;
-    }
-    else {
-        goalWorkout = 5;
-    }
 
 
     // get goal steps
@@ -131,49 +93,56 @@ router.get('/getreport', authTokenHandler, async (req, res) => {
         goalSteps = 5000;
     }
 
-    // get goal sleep
-    let goalSleep = 8;
-
-    // get goal water
-    let goalWater = 4000;
-
-
-
     let tempResponse = [
         {
-            name : "Calorie Intake",
-            value : calorieIntake,
-            goal : maxCalorieIntake,
-            unit : "cal",
+            name: "Name",
+            value: name
         },
         {
-            name : "Sleep",
-            value : sleep,
-            goal : goalSleep,
-            unit : "hrs",
+            name: "Email",
+            value: email
         },
         {
-            name: "Steps",
-            value : steps,
-            goal : goalSteps,
-            unit : "steps",
+            name: "Date of Birth",
+            value: dob.toISOString().split('T')[0] // Format the date to YYYY-MM-DD
         },
         {
-            name : "Water",
-            value : water,
-            goal : goalWater,
-            unit : "ml",
+            name: "Gender",
+            value: gender
         },
         {
-            name : "Weight",
-            value : weight,
-            goal : goalWeight,
-            unit : "kg",
+            name: "Current Weight",
+            value: weight,
+            unit: "kg"
         },
+        {
+            name: "Height",
+            value: height,
+            unit: "cm"
+        },
+        {
+            name: "Weight Goal",
+            value: user.goal
+        },
+        {
+            name: "Max Calorie Intake",
+            value: Math.round(maxCalorieIntake),
+            unit: "cal"
+        },
+        {
+            name: "Goal Weight",
+            value: Math.round(goalWeight),
+            unit: "kg"
+        },
+        {
+            name: "Goal Steps",
+            value: goalSteps,
+            unit: "steps"
+        }
+    ];
 
-    ]
 
-    res.json(createResponse(true, 'Report', tempResponse));
+    res.json(createResponse(true, 'Profile data fetched successfully', tempResponse));
 })
 
 

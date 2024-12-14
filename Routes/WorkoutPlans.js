@@ -4,6 +4,8 @@ const errorHandler = require('../Middlewares/errorMiddleware');
 const adminTokenHandler = require('../Middlewares/checkAdminToken');
 const User = require('../Models/UserSchema');
 const Workout = require('../Models/WorkoutSchema');
+const mongoose = require('mongoose');
+
 
 
 function createResponse(ok, message, data) {
@@ -17,48 +19,6 @@ function createResponse(ok, message, data) {
 
 router.post('/workouts', adminTokenHandler , async (req, res) => {
     try {
-        // name: {
-        //     type: String,
-        //     required: true,
-        // },
-        // description: {
-        //     type: String,
-        //     required: true,
-        // },
-        // durationInMinutes: {
-        //     type: Number,
-        //     required: true,
-        // },
-        // exercises: [
-        //     {
-        //         name: {
-        //             type: String,
-        //             required: true,
-        //         },
-        //         description: {
-        //             type: String,
-        //             required: true,
-        //         },
-        //         sets: {
-        //             type: Number,
-        //             required: true,
-        //         },
-        //         reps: {
-        //             type: Number,
-        //             required: true,
-        //         },
-        //         imageURL: {
-        //             type: String,
-        //             required: true,
-        //         },
-        //     }
-        // ],
-        // imageURL: {
-        //     type: String,
-        //     required: true,
-        // },
-
-
         const { name, description, durationInMinutes, exercises, imageURL } = req.body;
         const workout = new Workout({
             name,
@@ -110,15 +70,33 @@ router.put('/workouts/:id', adminTokenHandler , async (req, res) => {
     }
 });
 
-router.delete('/workouts/:id', adminTokenHandler , async (req, res) => {
+
+router.delete('/workouts/:id', adminTokenHandler, async (req, res) => {
     try {
-        const workout = await Workout.findById(req.params.id);
-        await workout.remove();
+        const workoutId = req.params.id.trim();  // Trim the ID to avoid extra spaces or newlines
+
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(workoutId)) {
+            return res.json(createResponse(false, 'Invalid workout ID'));
+        }
+
+        // Find the workout by ID
+        const workout = await Workout.findById(workoutId);
+
+        // If no workout is found, return a message
+        if (!workout) {
+            return res.json(createResponse(false, 'Workout not found'));
+        }
+
+        // Use deleteOne instead of remove
+        await Workout.deleteOne({ _id: workoutId });
+
         res.json(createResponse(true, 'Workout deleted successfully'));
     } catch (err) {
         res.json(createResponse(false, err.message));
     }
 });
+
 
 
 

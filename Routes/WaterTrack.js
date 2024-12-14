@@ -76,16 +76,18 @@ router.post('/getwaterbylimit', authTokenHandler, async (req, res) => {
 });
 
 router.delete('/deletewaterentry', authTokenHandler, async (req, res) => {
-    const { date } = req.body;
+    const { id } = req.body;
 
-    if (!date) {
+    if (!id) {
         return res.status(400).json(createResponse(false, 'Please provide date'));
     }
 
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
 
-    user.water = user.water.filter(entry => entry.date !== date);
+    user.water = user.water.filter(entry => {
+        return entry._id.toString() !== id;
+    });
 
     await user.save();
     res.json(createResponse(true, 'Water entry deleted successfully'));

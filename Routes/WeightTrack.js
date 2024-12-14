@@ -75,16 +75,18 @@ router.post('/getweightbylimit', authTokenHandler, async (req, res) => {
 });
 
 router.delete('/deleteweightentry', authTokenHandler, async (req, res) => {
-    const { date } = req.body;
+    const { id } = req.body;
 
-    if (!date) {
+    if (!id) {
         return res.status(400).json(createResponse(false, 'Please provide date'));
     }
 
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
 
-    user.weight = user.weight.filter(entry => entry.date !== date);
+    user.weight = user.weight.filter(entry => {
+        return entry._id.toString() !== id;
+    });
 
     await user.save();
     res.json(createResponse(true, 'Weight entry deleted successfully'));

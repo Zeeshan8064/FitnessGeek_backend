@@ -17,13 +17,14 @@ const waterTrackRoutes = require('./Routes/WaterTrack');
 const workoutTrackRoutes = require('./Routes/WorkoutTrack');
 const workoutRoutes = require('./Routes/WorkoutPlans');
 const reportRoutes = require('./Routes/Report');
+const profileRoutes = require('./Routes/Profile');
 
 
 require('dotenv').config();
 require('./db')
 
 app.use(bodyParser.json());
-const allowedOrigins = ['http://localhost:3000'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
 
 app.use(
     cors({
@@ -52,6 +53,7 @@ app.use('/watertrack', waterTrackRoutes);
 app.use('/workouttrack', workoutTrackRoutes);
 app.use('/workoutplans', workoutRoutes);
 app.use('/report', reportRoutes);
+app.use('/profile', profileRoutes);
 
 
 app.get('/', (req, res) => {

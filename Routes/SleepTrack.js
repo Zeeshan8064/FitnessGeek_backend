@@ -49,7 +49,6 @@ router.post('/getsleepbydate', authTokenHandler, async (req, res) => {
     res.json(createResponse(true, 'Sleep entries for the date', user.sleep));
 });
 
-
 router.post('/getsleepbylimit', authTokenHandler, async (req, res) => {
     const { limit } = req.body;
 
@@ -74,17 +73,17 @@ router.post('/getsleepbylimit', authTokenHandler, async (req, res) => {
 });
 
 router.delete('/deletesleepentry', authTokenHandler, async (req, res) => {
-    const { date } = req.body;
+    const { id } = req.body;
 
-    if (!date) {
-        return res.status(400).json(createResponse(false, 'Please provide date'));
+    if (!id) {
+        return res.status(400).json(createResponse(false, 'Please provide id'));
     }
 
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
 
     user.sleep = user.sleep.filter(entry => {
-        return entry.date !== date;
+        return entry._id.toString() !== id; // Compare by id instead of date
     });
 
     await user.save();

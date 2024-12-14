@@ -21,12 +21,12 @@ const userSchema = new mongoose.Schema(
 
     weight: [
       {
-        weight: {
-          type: Number,
-          required: true,
-        },
         date: {
           type: Date,
+          required: true,
+        },
+        weight: {
+          type: Number,
           required: true,
         },
       },
@@ -97,6 +97,19 @@ const userSchema = new mongoose.Schema(
           required: true,
         },
         durationInHrs: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
+
+    water: [
+      {
+        date: {
+          type: Date,
+          required: true,
+        },
+        amountInMilliliters: {
           type: Number,
           required: true,
         },

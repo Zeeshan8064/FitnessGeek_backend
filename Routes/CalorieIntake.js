@@ -68,7 +68,7 @@ router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
               const nutritionData = body.items[0]; // Access the first item in the items array
 
               // Validate the required fields in the response
-              if (typeof nutritionData.calories !== 'number' || typeof nutritionData.serving_size_g !== 'number' || 
+              if (typeof nutritionData.calories !== 'number' || typeof nutritionData.serving_size_g !== 'number' ||
                   isNaN(nutritionData.calories) || isNaN(nutritionData.serving_size_g)) {
                   return res.status(400).json(createResponse(false, 'Invalid data from nutrition API'));
               }
@@ -171,8 +171,8 @@ router.delete("/deletecalorieintake", authTokenHandler, async (req, res) => {
     const userID = req.userId;
     const user = await User.findOne({ _id: userID });
 
-    user.calorieIntake = user.calorieIntake.filter((item) => {
-        return item.item != item && item.date != date;
+    user.calorieIntake = user.calorieIntake.filter((entry) => {
+        return entry.date.toString() !== new Date(date).toString();
     })
 
     await user.save();

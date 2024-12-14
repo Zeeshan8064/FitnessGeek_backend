@@ -76,16 +76,18 @@ router.post('/getstepsbylimit', authTokenHandler, async (req, res) => {
 });
 
 router.delete('/deletestepentry', authTokenHandler, async (req, res) => {
-    const { date } = req.body;
+    const { id } = req.body;
 
-    if (!date) {
-        return res.status(400).json(createResponse(false, 'Please provide date'));
+    if (!id) {
+        return res.status(400).json(createResponse(false, 'Please provide id'));
     }
 
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
 
-    user.steps = user.steps.filter(entry => entry.date !== date);
+    user.steps = user.steps.filter(entry => {
+        return entry._id.toString() !== id;
+    });
 
     await user.save();
     res.json(createResponse(true, 'Steps entry deleted successfully'));
