@@ -24,7 +24,7 @@ require('dotenv').config();
 require('./db')
 
 app.use(bodyParser.json());
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001','https://zeeshan8064.github.io/FitGeek/'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
 
 app.use(
     cors({
