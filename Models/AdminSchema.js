@@ -8,7 +8,6 @@ const adminSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     password: {
       type: String,
       required: true,
@@ -20,8 +19,6 @@ const adminSchema = new mongoose.Schema(
     },},
     { timestamps: true }
   );
-
-  // Hash the password before saving it to the database
 adminSchema.pre("save", async function (next) {
     const admin = this;
     if (admin.isModified("password")) {

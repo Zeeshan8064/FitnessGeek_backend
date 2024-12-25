@@ -7,18 +7,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     password: {
       type: String,
       required: true,
     },
-
     email: {
       type: String,
       required: true,
       unique: true,
     },
-
     weight: [
       {
         date: {
@@ -31,7 +28,6 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-
     height: [
       {
         height: {
@@ -44,22 +40,18 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-
     gender: {
       type: String,
       required: true,
     },
-
     dob: {
       type: String,
       required: true,
     },
-
     goal: {
       type: String,
       required: true,
     },
-
     calorieIntake: [
       {
         item: {
@@ -84,12 +76,10 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-
     activityLevel: {
       type: String,
       required: true,
     },
-
     sleep: [
       {
         date: {
@@ -102,7 +92,6 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-
     water: [
       {
         date: {
@@ -115,7 +104,6 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-
     steps: [
       {
         date: {
@@ -128,7 +116,6 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-
     workouts: [
       {
         date: {

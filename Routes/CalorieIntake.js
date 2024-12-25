@@ -15,18 +15,11 @@ function createResponse(ok, message, data) {
   };
 }
 
-router.get("/test", authTokenHandler, async (req, res) => {
-  res.json(
-    createResponse(true, "Test API is working for calorie intake report")
-  );
-});
-
 router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
   const { item, date, quantity, quantityType } = req.body;
   if (!item || !date || !quantity || !quantityType) {
       return res.status(400).json(createResponse(false, 'Please provide all the details'));
   }
-
   let qtyingrams = 0;
   if (quantityType === 'g') {
       qtyingrams = Number(quantity);
@@ -39,7 +32,6 @@ router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
   } else {
       return res.status(400).json(createResponse(false, 'Invalid quantity type'));
   }
-
   var query = item;
   request.get({
       url: 'https://api.calorieninjas.com/v1/nutrition?query=' + query,
@@ -58,28 +50,19 @@ router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
       else {
           try {
               body = JSON.parse(body);
-              console.log('API Response:', body); // Debug log to check the response
-
-              // Check if items array is valid and contains data
+              console.log('API Response:', body);
               if (!Array.isArray(body.items) || body.items.length === 0) {
                   return res.status(400).json(createResponse(false, 'No data available for the requested item'));
               }
-
-              const nutritionData = body.items[0]; // Access the first item in the items array
-
-              // Validate the required fields in the response
+              const nutritionData = body.items[0];
               if (typeof nutritionData.calories !== 'number' || typeof nutritionData.serving_size_g !== 'number' ||
                   isNaN(nutritionData.calories) || isNaN(nutritionData.serving_size_g)) {
                   return res.status(400).json(createResponse(false, 'Invalid data from nutrition API'));
               }
-
-              // Calculate calorie intake
               let calorieIntake = (nutritionData.calories / nutritionData.serving_size_g) * qtyingrams;
-
               if (isNaN(calorieIntake) || !isFinite(calorieIntake) || calorieIntake <= 0) {
                   return res.status(400).json(createResponse(false, 'Invalid calorie intake calculated'));
               }
-
               const userId = req.userId;
               const user = await User.findOne({ _id: userId });
               user.calorieIntake.push({
@@ -87,7 +70,7 @@ router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
                   date: new Date(date),
                   quantity,
                   quantityType,
-                  calorieIntake: Math.round(calorieIntake) // Optional: round to an integer
+                  calorieIntake: Math.round(calorieIntake)
               });
 
               await user.save();
@@ -99,7 +82,6 @@ router.post('/addcalorieintake', authTokenHandler, async (req, res) => {
       }
   });
 });
-
 
 router.post('/getcalorieintakebydate', authTokenHandler, async (req, res) => {
   const { date } = req.body;
@@ -116,7 +98,6 @@ router.post('/getcalorieintakebydate', authTokenHandler, async (req, res) => {
 
 })
 
-// Helper function for filtering entries by date
 function filterEntriesByDate(calorieIntakeArray, date) {
   return calorieIntakeArray.filter(entry => {
       // Normalize the date stored in the entry
@@ -198,7 +179,6 @@ router.post("/getgoalcaloreintake", authTokenHandler, async (req, res) => {
     } else{
         BMR = 447.593 + (9.247 * weightInKg) + (3.098 * heightInCm) - (4.330 * age);
     }
-
     if(user.goal === 'weightloss'){
         maxCalorieIntake = BMR - 500;
 

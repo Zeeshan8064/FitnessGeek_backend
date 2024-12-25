@@ -24,25 +24,12 @@ router.get('/getprofile', authTokenHandler, async (req, res) => {
     const userId = req.userId;
     const user = await User.findById({ _id: userId });
     let today = new Date();
-
-    // get user's name
     let name = user.name;
-
-    //get user's email address
     let email = user.email;
-
-    // get today's weight
     let weight = user.weight[user.weight.length - 1].weight;
-    // get today's height
     let height = user.height[user.height.length - 1].height;
-
-    // get user's gender
     let gender = user.gender;
-
-    // get user's d.o.b
     let dob = new Date(user.dob);
-
-    // get goal calorieIntake
 
     let maxCalorieIntake = 0;
     let heightInCm = parseFloat(user.height[user.height.length - 1].height);
@@ -70,7 +57,6 @@ router.get('/getprofile', authTokenHandler, async (req, res) => {
         maxCalorieIntake = BMR;
     }
 
-    // get goal weight
     let goalWeight = 22 * ((user.height[user.height.length - 1].height / 100) ** 2);
 
 

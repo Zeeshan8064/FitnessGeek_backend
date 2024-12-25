@@ -17,7 +17,8 @@ router.post('/addstepentry', authTokenHandler, async (req, res) => {
     const { date, steps } = req.body;
 
     if (!date || !steps) {
-        return res.status(400).json(createResponse(false, 'Please provide date and steps count'));
+        return res.status(400).json(createResponse(false,
+            'Please provide date and steps count'));
     }
 
     const userId = req.userId;
@@ -42,11 +43,13 @@ router.post('/getstepsbydate', authTokenHandler, async (req, res) => {
         let date = new Date();
         user.steps = filterEntriesByDate(user.steps, date);
 
-        return res.json(createResponse(true, 'Steps entries for today', user.steps));
+        return res.json(createResponse(true, 'Steps entries for today',
+            user.steps));
     }
 
     user.steps = filterEntriesByDate(user.steps, new Date(date));
-    res.json(createResponse(true, 'Steps entries for the date', user.steps));
+    res.json(createResponse(true, 'Steps entries for the date',
+        user.steps));
 });
 
 
@@ -58,20 +61,22 @@ router.post('/getstepsbylimit', authTokenHandler, async (req, res) => {
     const user = await User.findById({ _id: userId });
 
     if (!limit) {
-        return res.status(400).json(createResponse(false, 'Please provide limit'));
+        return res.status(400).json(createResponse(false,
+            'Please provide limit'));
     } else if (limit === 'all') {
-        return res.json(createResponse(true, 'All steps entries', user.steps));
+        return res.json(createResponse(true, 'All steps entries',
+            user.steps));
     } else {
         let date = new Date();
-        let currentDate = new Date(date.setDate(date.getDate() - parseInt(limit))).getTime();
-
-
+        let currentDate = new Date(date.setDate(date.getDate() -
+         parseInt(limit))).getTime();
 
         user.steps = user.steps.filter((item) => {
             return new Date(item.date).getTime() >= currentDate;
         })
 
-        return res.json(createResponse(true, `Steps entries for the last ${limit} days`, user.steps));
+        return res.json(createResponse(true,
+             `Steps entries for the last ${limit} days`, user.steps));
     }
 });
 
@@ -79,7 +84,8 @@ router.delete('/deletestepentry', authTokenHandler, async (req, res) => {
     const { id } = req.body;
 
     if (!id) {
-        return res.status(400).json(createResponse(false, 'Please provide id'));
+        return res.status(400).json(createResponse(false,
+            'Please provide id'));
     }
 
     const userId = req.userId;
