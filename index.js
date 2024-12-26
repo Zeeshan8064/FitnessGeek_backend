@@ -6,17 +6,17 @@ const cors = require('cors');
 const PORT = 8000;
 const cookieParser = require('cookie-parser');
 
-const authRoutes = require('./api/Auth');
-const calorieIntakeRoutes = require('./api/CalorieIntake');
-const adminRoutes = require('./api/Admin');
-const imageUploadRoutes = require('./api/imageUploadRoutes');
-const sleepTrackRoutes = require('./api/SleepTrack');
-const stepTrackRoutes = require('./api/StepTrack');
-const weightTrackRoutes = require('./api/WeightTrack');
-const waterTrackRoutes = require('./api/WaterTrack');
-const workoutRoutes = require('./api/WorkoutPlans');
-const reportRoutes = require('./api/Report');
-const profileRoutes = require('./api/Profile');
+const authRoutes = require('./Routes/Auth');
+const calorieIntakeRoutes = require('./Routes/CalorieIntake');
+const adminRoutes = require('./Routes/Admin');
+const imageUploadRoutes = require('./Routes/imageUploadRoutes');
+const sleepTrackRoutes = require('./Routes/SleepTrack');
+const stepTrackRoutes = require('./Routes/StepTrack');
+const weightTrackRoutes = require('./Routes/WeightTrack');
+const waterTrackRoutes = require('./Routes/WaterTrack');
+const workoutRoutes = require('./Routes/WorkoutPlans');
+const reportRoutes = require('./Routes/Report');
+const profileRoutes = require('./Routes/Profile');
 
 
 require('dotenv').config();
