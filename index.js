@@ -1,11 +1,9 @@
 const express = require('express');
 const app = express();
-
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const PORT = 8000;
 const cookieParser = require('cookie-parser');
-
 const authRoutes = require('./Routes/Auth');
 const calorieIntakeRoutes = require('./Routes/CalorieIntake');
 const adminRoutes = require('./Routes/Admin');
