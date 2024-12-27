@@ -21,13 +21,19 @@ require('dotenv').config();
 require('./db')
 
 app.use(bodyParser.json());
+const allowedOrigins = ['http://localhost:3000','http://localhost:3001',
+ 'https://fit-geek-admin.vercel.app','https://fit-geek-eight.vercel.app'];
 
 app.use(
     cors({
-        origin: '*',
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true, // Allow credentials
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed HTTP methods
-        allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'], // Specify allowed headers
     })
 );
 app.use(cookieParser());
