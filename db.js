@@ -3,7 +3,7 @@ require('dotenv').config();  // Make sure to load environment variables
 
 // Use environment variables for sensitive data like the MongoDB URI
 const uri = process.env.MONGO_URL;  // For example: mongodb+srv://<username>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
-
+mongoose.set('debug', true);
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
