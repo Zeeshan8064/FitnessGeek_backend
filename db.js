@@ -4,7 +4,6 @@ require('dotenv').config();
 
 console.log('Connecting to database...');
 
-// Port testing function
 const testMongoDBConnection = () => {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
@@ -13,7 +12,6 @@ const testMongoDBConnection = () => {
       client.destroy();
       resolve();
     });
-
     client.on('error', (err) => {
       console.error('Port test failed:', err.message);
       reject(err);
@@ -21,23 +19,30 @@ const testMongoDBConnection = () => {
   });
 };
 
-// Attempt to test port and connect to MongoDB
 (async () => {
   try {
     await testMongoDBConnection();
+    
+    // Log connection details
+    console.log('Attempting connection with:', {
+      url: process.env.MONGO_URL?.split('@')[1] || 'URL not found',
+      dbName: process.env.DB_NAME || 'DB_NAME not found'
+    });
 
     mongoose.connect(process.env.MONGO_URL, {
       dbName: process.env.DB_NAME,
-      serverSelectionTimeoutMS: 60000, // Increase timeout for debugging
+      serverSelectionTimeoutMS: 60000,
     })
       .then(() => {
         console.log('Connected to database');
       })
       .catch((err) => {
-        console.error('Error connecting to database:', err.message);
-        console.error(err);
+        console.error('Connection error details:', {
+          name: err.name,
+          code: err.code,
+          message: err.message
+        });
       });
-
   } catch (error) {
     console.error('Skipping MongoDB connection attempt due to port test failure.');
   }
