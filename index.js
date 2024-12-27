@@ -22,7 +22,7 @@ require('./db')
 
 app.use(bodyParser.json());
 const allowedOrigins = ['http://localhost:3000','http://localhost:3001',
-'https://fit-geek-8d7vdm08n-zeeshan8064s-projects.vercel.app/','https://fit-geek-admin-c72axciiq-zeeshan8064s-projects.vercel.app/'];
+'https://fit-geek-8d7vdm08n-zeeshan8064s-projects.vercel.app','https://fit-geek-admin-c72axciiq-zeeshan8064s-projects.vercel.app'];
 
 app.use(
     cors({
