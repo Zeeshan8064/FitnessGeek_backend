@@ -1,18 +1,16 @@
-console.log('Connecting to database...');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const uri = process.env.MONGO_URL + `${process.env.DB_NAME}?retryWrites=true&w=majority`;
+console.log('Connecting to database...');
 
-mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 300000,
+mongoose.connect(process.env.MONGO_URL, {
+  dbName: process.env.DB_NAME,
+  serverSelectionTimeoutMS: 60000, // Increase timeout for debugging
 })
-    .then(() => {
-        console.log('Connected to database');
-        console.log('Mongoose version:', mongoose.version);
-    })
-    .catch((err) => {
-        console.log('Error connecting to database: ' + err);
-    });
+  .then(() => {
+    console.log('Connected to database');
+  })
+  .catch((err) => {
+    console.error('Error connecting to database:', err.message);
+    console.error(err); // Log the entire error object for debugging
+  });
