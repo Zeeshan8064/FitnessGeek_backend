@@ -35,7 +35,7 @@ function createResponse(ok, message, data) {
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = email.toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
     console.log(user);
     if (!user) {
