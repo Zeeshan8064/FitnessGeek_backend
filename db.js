@@ -3,26 +3,31 @@ require('dotenv').config();
 
 console.log('Connecting to database...');
 
+mongoose.connection.on('error', err => {
+  console.error('Mongoose connection error:', err);
+});
+
 (async () => {
   try {
-    console.log('Attempting connection with:', {
-      url: process.env.MONGO_URL?.split('@')[1] || 'URL not found',
-      dbName: process.env.DB_NAME || 'DB_NAME not found'
+    const MONGO_URL = process.env.MONGO_URL.replace(
+      'mongodb+srv://',
+      'mongodb://'
+    );
+
+    console.log('Connection URL type:', { 
+      original: process.env.MONGO_URL?.split('@')[1],
+      modified: MONGO_URL.split('@')[1]
     });
 
-    const conn = await mongoose.connect(process.env.MONGO_URL, {
+    const conn = await mongoose.connect(MONGO_URL, {
       dbName: process.env.DB_NAME,
-      serverSelectionTimeoutMS: 30000,
-      connectTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000
     });
     
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error('Database connection error:', {
-      name: error.name,
-      code: error.code,
-      message: error.message
-    });
+    console.error('Connection error:', error);
     process.exit(1);
   }
 })();
