@@ -1,32 +1,37 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-console.log('Connecting to database...');
+console.log('Attempting MongoDB connection...');
+
+mongoose.set('debug', true);
 
 (async () => {
   try {
-    // Ensure URL uses srv format
-    const MONGO_URL = process.env.MONGO_URL.includes('mongodb+srv://') 
-      ? process.env.MONGO_URL
-      : process.env.MONGO_URL.replace('mongodb://', 'mongodb+srv://');
-
-    const conn = await mongoose.connect(MONGO_URL, {
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
       dbName: process.env.DB_NAME,
-      directConnection: false,
+      maxPoolSize: 10,
       serverApi: {
         version: '1',
         strict: true,
-        deprecationErrors: true,
+        deprecationErrors: true
       }
-    });
+    };
+
+    console.log('Connection URL:', process.env.MONGO_URL?.split('@')[1]);
+    await mongoose.connect(process.env.MONGO_URL, options);
     
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('Connection error:', {
-      name: error.name,
-      code: error.code,
-      message: error.message
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose connected');
     });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('Mongoose error:', err);
+    });
+
+  } catch (err) {
+    console.error('Connection failed:', err.message);
     process.exit(1);
   }
 })();
