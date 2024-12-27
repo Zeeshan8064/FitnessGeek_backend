@@ -1,6 +1,8 @@
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://zeeshanahmad8064:ZA101639@cluster1.jzeeu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1";
+require('dotenv').config();  // Make sure to load environment variables
+
+// Use environment variables for sensitive data like the MongoDB URI
+const uri = process.env.MONGO_URL;  // For example: mongodb+srv://<username>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -13,14 +15,23 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+    console.log('Attempting MongoDB connection...');
+
+    // Connect the client to the server (optional starting in v4.7)
     await client.connect();
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err.message);
   } finally {
-    // Ensures that the client will close when you finish/error
+    // Ensure that the client will close when you finish/error
     await client.close();
   }
 }
-run().catch(console.dir);
+
+run().catch((err) => {
+  console.error("Unexpected error:", err.message);
+});
