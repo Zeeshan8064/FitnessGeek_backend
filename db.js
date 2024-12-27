@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const uri = process.env.MONGO_URL;
+const uri = 'mongodb://52.58.203.31:27017/fitnessgeek';
+
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
