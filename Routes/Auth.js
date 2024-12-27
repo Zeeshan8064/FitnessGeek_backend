@@ -38,7 +38,7 @@ router.post("/login", async (req, res, next) => {
     if (!email) {
   return res.status(400).json({ success: false, message: "Email is required" });
 }
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
     console.log(user);
     if (!user) {
