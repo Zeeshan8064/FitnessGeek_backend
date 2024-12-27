@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 console.log('Connecting to database...');
+console.log('Mongoose version:', mongoose.version);
 
 mongoose.connect(process.env.MONGO_URL, {
   dbName: process.env.DB_NAME,
