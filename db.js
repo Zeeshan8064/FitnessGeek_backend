@@ -6,6 +6,7 @@ const uri = process.env.MONGO_URL + `${process.env.DB_NAME}?retryWrites=true&w=m
 mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 300000,
 })
     .then(() => {
         console.log('Connected to database');
