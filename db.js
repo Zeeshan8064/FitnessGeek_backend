@@ -3,6 +3,9 @@ require('dotenv').config();
 
 console.log('Connecting to database...');
 console.log('Mongoose version:', mongoose.version);
+console.log('MONGO_URL:', process.env.MONGO_URL);
+console.log('DB_NAME:', process.env.DB_NAME);
+
 
 mongoose.connect(process.env.MONGO_URL, {
   dbName: process.env.DB_NAME,
