@@ -10,6 +10,7 @@ mongoose.connect(uri, {
 })
     .then(() => {
         console.log('Connected to database');
+        console.log('Mongoose version:', mongoose.version);
     })
     .catch((err) => {
         console.log('Error connecting to database: ' + err);
