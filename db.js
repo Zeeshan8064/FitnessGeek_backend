@@ -8,7 +8,7 @@ console.log('Connecting to database...');
 const testMongoDBConnection = () => {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
-    client.connect(27017, 'cluster0.kuy7b.mongodb.net', () => {
+    client.connect(27017, 'cluster0-shard-00-01.kuy7b.mongodb.net', () => {
       console.log('Port 27017 is accessible');
       client.destroy();
       resolve();
