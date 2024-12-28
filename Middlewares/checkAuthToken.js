@@ -20,8 +20,9 @@ function checkAuth(req, res, next) {
                     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '100d' });
                     console.log('Auth token:', authToken);
                     console.log('Refresh token:', refreshToken);
-                    res.cookie('authToken', newAuthToken, { httpOnly: true });
-                    res.cookie('refreshToken', newRefreshToken, { httpOnly: true });
+                    res.cookie('authToken', newAuthToken, { httpOnly: true, secure: true, sameSite: 'None' });
+                    res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'None' });
+
                     req.userId = refreshDecoded.userId;
                     req.ok = true;
                     next();
