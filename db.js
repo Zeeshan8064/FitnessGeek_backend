@@ -1,29 +1,46 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const { default: mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 require('dotenv').config();
+
 const uri = process.env.MONGO_URL;
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+
+// Enable Mongoose debugging in development
 mongoose.set('debug', true);
 
-async function run() {
+const connectToDatabase = async () => {
   try {
     console.log('Attempting MongoDB connection...');
-    await client.connect();
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    
+    // Use Mongoose to connect to MongoDB
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+    });
+
+    console.log("Successfully connected to MongoDB!");
+
+    // Add a listener for the Mongoose connection
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose is connected to the database');
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('Mongoose connection error:', err.message);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.warn('Mongoose connection disconnected');
+    });
   } catch (err) {
     console.error("Error connecting to MongoDB:", err.message);
-  } finally {
-    await client.close();
+    process.exit(1); // Exit the process with failure
   }
-}
+};
 
-run().catch((err) => {
-  console.error("Unexpected error:", err.message);
-});
+// Export the connection function for use in your application
+module.exports = connectToDatabase;
