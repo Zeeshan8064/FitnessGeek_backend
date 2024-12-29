@@ -46,9 +46,12 @@ router.post("/login", async (req, res, next) => {
     }
     console.log("Stored password: ", user.password);
     console.log("Entered password: ", password.trim());
+    
     // Directly compare the entered password with the stored plaintext password
-    if (password.trim() !== user.password) {
-      return res.status(400).json({ success: false, message: "Invalid email or password" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      return res.status(400).json(createResponse(false, "Invalid email or password"));
     }
 
     // Generate tokens
@@ -97,52 +100,46 @@ router.post("/logout", (req, res) => {
 
 
 
-router.post("/register", async (req, res, next) => {
+router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel } = req.body;
-
-    // Normalize the email by trimming spaces and converting to lowercase
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // Check if a user with the same email already exists
-    const existingUser = await User.findOne({ email: normalizedEmail });
+    const {name,email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel} = req.body;
+    const existingUser = await User.findOne({email: email});
 
     if (existingUser) {
       return res.status(409).json(createResponse(false, "Email already exists"));
     }
 
-    // Save the password as-is (plaintext, insecure)
-    const newUser = new User({
-      name,
-      password: password.trim(), // Save the password as plaintext
-      email: normalizedEmail,
-      weight: [
-        {
-          weight: weightInKg,
-          unit: "kg",
-          date: Date.now(),
-        },
-      ],
-      height: [
-        {
-          height: heightInCm,
-          date: Date.now(),
-          unit: "cm",
-        },
-      ],
-      gender,
-      dob,
-      goal,
-      activityLevel,
-    });
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Save the user to the database
+    const newUser = new User({
+        name,
+        password: hashedPassword,
+        email,
+        weight: [
+            {
+                weight: weightInKg,
+                unit: "kg",
+                date: Date.now()
+            }
+        ],
+        height: [
+            {
+                height: heightInCm,
+                date: Date.now(),
+                unit: "cm"
+            }
+        ],
+        gender,
+        dob,
+        goal,
+        activityLevel
+    });
     await newUser.save();
 
-    // Send a success response
-    res.status(201).json(createResponse(true, "User registered successfully"));
-  } catch (err) {
-    next(err); // Pass any errors to the error-handling middleware
+    res.status(201).json(createResponse(true, 'User registered successfully'));
+  }
+  catch (err) {
+    next(err);
   }
 });
 
