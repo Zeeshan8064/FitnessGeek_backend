@@ -9,6 +9,15 @@ function checkAuth(req, res, next) {
 
     if (!authToken || !refreshToken) {
         return res.status(401).json({ message: 'Authentication failed: No authToken or refreshToken provided' , ok : false });
+                console.log("RefreshToken valid, issuing new tokens...");
+                const newAuthToken = jwt.sign({ userId: refreshDecoded.userId }, process.env.JWT_SECRET, { expiresIn: '50m' });
+                const newRefreshToken = jwt.sign({ userId: refreshDecoded.userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '100d' });
+
+                // Send the new tokens in cookies
+                res.cookie('authToken', newAuthToken, { httpOnly: true, secure: true, sameSite: 'None' });
+                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'None' });
+                        req.userId = refreshDecoded.userId;
+                next();
     }
 
     jwt.verify(authToken, process.env.JWT_SECRET, (err, decoded) => {
