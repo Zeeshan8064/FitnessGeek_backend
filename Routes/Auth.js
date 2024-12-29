@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/UserSchema");
 const errorHandler = require("../Middlewares/errorMiddleware");
-const checkAuth = require("../Middlewares/checkAuthToken");
+const authTokenHandler = require("../Middlewares/checkAuthToken");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
 const nodemailer = require("nodemailer");
@@ -112,13 +112,11 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/checklogin", checkAuth ,async (req, res) => {
+router.post("/checklogin", authTokenHandler ,async (req, res) => {
     res.json({
         ok: true,
         message: "User is authenticated"
     })
-                    console.log('Auth token:', authToken);
-                    console.log('Refresh token:', refreshToken);
 });
 
 
