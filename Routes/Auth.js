@@ -50,7 +50,7 @@ router.post("/login", async (req, res, next) => {
 
     const isMatch = await bcrypt.compare(password.trim(), user.password);  // Make sure the entered password is trimmed
     console.log("Stored hash:", user.password);
-    console.log("Entered password:", password);
+    console.log("Entered password after hashing:", bcrypt.hash(password, 10));
     console.log("Password match:", isMatch);
 
     if (!isMatch) {
