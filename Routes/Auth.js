@@ -90,7 +90,7 @@ router.post("/logout", (req, res) => {
 });
 
 
-router.post("/register", async (req, res) => {
+router.post("/register", async (req, res,next) => {
   try {
     const { name, email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel } = req.body;
 
