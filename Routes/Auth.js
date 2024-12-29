@@ -35,33 +35,53 @@ function createResponse(ok, message, data) {
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     if (!email) {
-  return res.status(400).json({ success: false, message: "Email is required" });
-}
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
     console.log(user);
+
     if (!user) {
-      return res.status(400).json(createResponse(false, "user not found"));
+      return res.status(400).json({ success: false, message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json(createResponse(false, "Invalid email or password"));
+      return res.status(400).json({ success: false, message: "Invalid email or password" });
     }
 
+    // Generate tokens
     const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '50m' });
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '100m' });
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '100d' });
 
-    res.status(200).json(createResponse(true, 'Logged in successfully', {
-      authToken,
-      refreshToken
-    }));
+    // Clear any existing tokens
+    res.clearCookie('authToken');
+    res.clearCookie('refreshToken');
+
+    // Set cookies for tokens
+    res.cookie('authToken', authToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Only send cookies over HTTPS in production
+      sameSite: 'None', // Required for cross-origin requests
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'None',
+    });
+
+    // Send response
+    res.status(200).json({ success: true, message: "Logged in successfully" });
   } catch (err) {
-    next(err); // Make sure next is included here for error-handling middleware
+    next(err); // Pass error to the error-handling middleware
   }
 });
+
 
 router.post("/logout", (req, res) => {
   res.clearCookie("authToken", { httpOnly: true });
