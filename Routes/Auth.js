@@ -30,54 +30,48 @@ function createResponse(ok, message, data) {
   };
 }
 
-
-
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required" });
-    }
-
     const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
-    console.log(user);
 
     if (!user) {
       return res.status(400).json({ success: false, message: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Password provided:", password.trim());
+    console.log("Stored hash from DB:", user.password);
+
+    const isMatch = await bcrypt.compare(password.trim(), user.password);
+    console.log("Password match result:", isMatch);
 
     if (!isMatch) {
-      return res.status(400).json(createResponse(false, "Invalid email or password"));
+      return res.status(400).json({ success: false, message: "Invalid email or password" });
     }
-    // Generate tokens
-    const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '50m' });
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '100d' });
 
-    // Clear any existing tokens
-    res.clearCookie('authToken');
-    res.clearCookie('refreshToken');
+    const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "50m" });
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "100d" });
 
-    // Set cookies for tokens
-    res.cookie('authToken', authToken, {
+    res.clearCookie("authToken");
+    res.clearCookie("refreshToken");
+
+    res.cookie("authToken", authToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only send cookies over HTTPS in production
-      sameSite: 'None', // Required for cross-origin requests
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
     });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
     });
 
-    // Send response
     res.status(200).json({ success: true, message: "Logged in successfully" });
   } catch (err) {
-    next(err); // Pass error to the error-handling middleware
+    next(err);
   }
 });
 
@@ -100,28 +94,26 @@ router.post("/logout", (req, res) => {
 
 
 
-router.post("/register", async (req, res,next) => {
+router.post("/register", async (req, res, next) => {
   try {
     const { name, email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel } = req.body;
 
-    // Normalize the email by trimming spaces and converting to lowercase
     const normalizedEmail = email.trim().toLowerCase();
-
-    // Check if a user with the same email already exists
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(409).json(createResponse(false, "Email already exists"));
     }
 
-    // Hash the password before saving it to the database
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash the password
+    const trimmedPassword = password.trim();
+    const hashedPassword = await bcrypt.hash(trimmedPassword, 10);
+    console.log("Hashed password (to be saved):", hashedPassword);
 
-    // Create a new user with normalized email
     const newUser = new User({
       name,
       password: hashedPassword,
-      email: normalizedEmail, // Save the normalized email
+      email: normalizedEmail,
       weight: [
         {
           weight: weightInKg,
@@ -142,15 +134,13 @@ router.post("/register", async (req, res,next) => {
       activityLevel,
     });
 
-    // Save the user to the database
     await newUser.save();
-
-    // Send a success response
-    res.status(201).json(createResponse(true, 'User registered successfully'));
+    res.status(201).json(createResponse(true, "User registered successfully"));
   } catch (err) {
-    next(err); // Pass any errors to the error-handling middleware
+    next(err);
   }
 });
+
 
 router.post("/checklogin", authTokenHandler ,async (req, res) => {
     res.json({
