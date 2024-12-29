@@ -84,10 +84,21 @@ router.post("/login", async (req, res, next) => {
 
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("authToken", { httpOnly: true });
-  res.clearCookie("refreshToken", { httpOnly: true });
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Ensure cookies are cleared in production
+    sameSite: 'None', // Required for cross-origin requests
+  });
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+  });
+
   res.status(200).json(createResponse(true, "Logged out successfully"));
 });
+
 
 
 router.post("/register", async (req, res,next) => {
