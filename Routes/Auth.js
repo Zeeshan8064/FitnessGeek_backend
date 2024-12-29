@@ -89,46 +89,56 @@ router.post("/logout", (req, res) => {
   res.status(200).json(createResponse(true, "Logged out successfully"));
 });
 
+
 router.post("/register", async (req, res) => {
   try {
-    const {name,email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel} = req.body;
-    const existingUser = await User.findOne({email: email});
+    const { name, email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel } = req.body;
+
+    // Normalize the email by trimming spaces and converting to lowercase
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if a user with the same email already exists
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(409).json(createResponse(false, "Email already exists"));
     }
 
+    // Hash the password before saving it to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create a new user with normalized email
     const newUser = new User({
-        name,
-        password: hashedPassword,
-        email,
-        weight: [
-            {
-                weight: weightInKg,
-                unit: "kg",
-                date: Date.now()
-            }
-        ],
-        height: [
-            {
-                height: heightInCm,
-                date: Date.now(),
-                unit: "cm"
-            }
-        ],
-        gender,
-        dob,
-        goal,
-        activityLevel
+      name,
+      password: hashedPassword,
+      email: normalizedEmail, // Save the normalized email
+      weight: [
+        {
+          weight: weightInKg,
+          unit: "kg",
+          date: Date.now(),
+        },
+      ],
+      height: [
+        {
+          height: heightInCm,
+          date: Date.now(),
+          unit: "cm",
+        },
+      ],
+      gender,
+      dob,
+      goal,
+      activityLevel,
     });
+
+    // Save the user to the database
     await newUser.save();
 
+    // Send a success response
     res.status(201).json(createResponse(true, 'User registered successfully'));
-  }
-  catch (err) {
-    next(err);
+  } catch (err) {
+    next(err); // Pass any errors to the error-handling middleware
   }
 });
 
