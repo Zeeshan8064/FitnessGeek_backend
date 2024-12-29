@@ -34,29 +34,32 @@ router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(400).json({ success: false, message: "User not found" });
     }
-
-    console.log("Password provided:", password.trim());
-    console.log("Stored hash from DB:", user.password);
-
-    const isMatch = await bcrypt.compare(password.trim(), user.password);
-    console.log("Password match result:", isMatch);
-
-    if (!isMatch) {
+    console.log("Stored password: ", user.password);
+    console.log("Entered password: ", password.trim());
+    // Directly compare the entered password with the stored plaintext password
+    if (password.trim() !== user.password) {
       return res.status(400).json({ success: false, message: "Invalid email or password" });
     }
 
+    // Generate tokens
     const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "50m" });
     const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "100d" });
 
+    // Clear any existing tokens
     res.clearCookie("authToken");
     res.clearCookie("refreshToken");
 
+    // Set cookies for tokens
     res.cookie("authToken", authToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -69,12 +72,12 @@ router.post("/login", async (req, res, next) => {
       sameSite: "None",
     });
 
+    // Send response
     res.status(200).json({ success: true, message: "Logged in successfully" });
   } catch (err) {
-    next(err);
+    next(err); // Pass error to the error-handling middleware
   }
 });
-
 
 router.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
@@ -98,21 +101,20 @@ router.post("/register", async (req, res, next) => {
   try {
     const { name, email, password, weightInKg, heightInCm, gender, dob, goal, activityLevel } = req.body;
 
+    // Normalize the email by trimming spaces and converting to lowercase
     const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if a user with the same email already exists
     const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(409).json(createResponse(false, "Email already exists"));
     }
 
-    // Hash the password
-    const trimmedPassword = password.trim();
-    const hashedPassword = await bcrypt.hash(trimmedPassword, 10);
-    console.log("Hashed password (to be saved):", hashedPassword);
-
+    // Save the password as-is (plaintext, insecure)
     const newUser = new User({
       name,
-      password: hashedPassword,
+      password: password.trim(), // Save the password as plaintext
       email: normalizedEmail,
       weight: [
         {
@@ -134,12 +136,16 @@ router.post("/register", async (req, res, next) => {
       activityLevel,
     });
 
+    // Save the user to the database
     await newUser.save();
+
+    // Send a success response
     res.status(201).json(createResponse(true, "User registered successfully"));
   } catch (err) {
-    next(err);
+    next(err); // Pass any errors to the error-handling middleware
   }
 });
+
 
 
 router.post("/checklogin", authTokenHandler ,async (req, res) => {
