@@ -48,10 +48,10 @@ router.post("/login", async (req, res, next) => {
       return res.status(400).json({ success: false, message: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password.trim(), user.password);  // Make sure the entered password is trimmed
     console.log("Stored hash:", user.password);
-console.log("Entered password:", password);
-console.log("Password match:", isMatch);
+    console.log("Entered password:", password);
+    console.log("Password match:", isMatch);
 
     if (!isMatch) {
       return res.status(400).json({ success: false, message: "Invalid email or password" });
