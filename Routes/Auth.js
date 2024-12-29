@@ -116,8 +116,6 @@ router.post("/checklogin", authTokenHandler ,async (req, res) => {
     res.json({
         ok: true,
         message: "User is authenticated
-        console.log('Auth token:', authToken);
-        console.log('Refresh token:', refreshToken);
     })
 });
 
