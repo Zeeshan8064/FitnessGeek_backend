@@ -48,10 +48,9 @@ router.post("/login", async (req, res, next) => {
     console.log("Entered password: ", password.trim());
     
     // Directly compare the entered password with the stored plaintext password
-    const isMatch = await bcrypt.compare(password, user.password);
-    
-    if (!isMatch) {
-      return res.status(400).json(createResponse(false, "Invalid email or password"));
+     // Directly compare the entered password with the stored plaintext password
+    if (password.trim() !== user.password) {
+      return res.status(400).json({ success: false, message: "Invalid email or password" });
     }
 
     // Generate tokens
